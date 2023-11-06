@@ -16,7 +16,7 @@ This project is just for learning Go and an attempt at creating an ultra-fast UR
 
 **Q:** Why?
 
-**A:** Why the tf not?
+**A:** Why tf not?
 
 ## Production Goals
 
