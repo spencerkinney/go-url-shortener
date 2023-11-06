@@ -12,6 +12,8 @@ import (
 )
 
 // Global map to store the URL and its corresponding short URL
+// For now, this is just a simple Map and is not persisted anywhere.
+// todo later: Persist the map in a proper database with a caching layer.
 var urlMap sync.Map
 
 func main() {
