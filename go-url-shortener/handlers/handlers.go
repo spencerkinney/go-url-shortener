@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
-)
 
-import (
 	models "go-url-shortener/models"
 	utils "go-url-shortener/utils"
 )
@@ -30,20 +28,22 @@ func ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	shortCode := utils.GenerateShortURL()
 	urlMap.Store(shortCode, req.URL)
 
-	resp := models.ShortenResponse {
+	resp := models.ShortenResponse{
 		ShortURL: fmt.Sprintf("http://%s/%s", r.Host, shortCode),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	json.NewEncoder(w).Encode(resp) // Assume error handling here as per previous discussion
 }
 
 // Handler to redirect to the original URL
 func RedirectHandler(w http.ResponseWriter, r *http.Request) {
 	shortCode := r.URL.Path[1:]
+
 	if url, ok := urlMap.Load(shortCode); ok {
 		http.Redirect(w, r, url.(string), http.StatusFound)
 		return
 	}
+
 	http.NotFound(w, r)
 }
