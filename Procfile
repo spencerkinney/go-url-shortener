@@ -1,1 +1,1 @@
-web: ./go-url-shortener
+web: go-url-shortener
