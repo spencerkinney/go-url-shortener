@@ -31,7 +31,7 @@ func ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		if _, ok := urlMap.Load(req.CustomUrl); ok {
 			url := fmt.Sprintf("http://%s/%s", r.Host, req.CustomUrl)
-			http.Error(w, "Shortened URL " + url + " already exists!", http.StatusConflict)
+			http.Error(w, "Shortened URL "+url+" already exists!", http.StatusConflict)
 			return
 		}
 

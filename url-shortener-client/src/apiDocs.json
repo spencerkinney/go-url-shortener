@@ -1,0 +1,51 @@
+{
+  "host": "http://localhost",
+  "port": 8080,
+  "requests": [
+    {
+      "requestTitle": "Shorten Url",
+      "description": "Provide a shortened URL which will redirect to a provided URL.",
+      "requestType": "POST",
+      "accepts": ["application/json"], 
+      "produces": ["application/json"],
+      "endpoint": "/shorten",
+      "requestBody": "{\n\t\"url\": \"string\", *\n\t\"custom_url\": \"string\"\n}",
+      "responses": [
+        {
+          "statusCode": 200,
+          "description": "Successfully created short URL.",
+          "responseBody": ["{\n\t\"short_url\": \"string\"\n}"]
+        },
+        {
+          "statusCode": 400,
+          "description": "Bad request",
+          "responseBody": [
+            "Shortened URL already exists.",
+            "Custom URL cannot exceed 24 characters."
+          ]
+        },
+        {
+          "statusCode": 405,
+          "description": "Method not allowed",
+          "responseBody": []
+        }
+      ]
+    },
+    {
+      "requestTitle": "Redirect to URL",
+      "description": "Redirect to URL which maps to the shortened URL.",
+      "requestType": "GET",
+      "accepts": [], 
+      "produces": [],
+      "endpoint": "/{id}",
+      "requestBody": "",
+      "responses": [
+        {
+          "statusCode": 301,
+          "description": "Successfully redirected.",
+          "responseBody": []
+        }
+      ]
+    }
+  ]
+}
