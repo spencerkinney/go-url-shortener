@@ -21,4 +21,6 @@
 go.work
 
 ./go-url-shortener
+go-url-shortener
+go-url-shortener.exe
 Procfile
