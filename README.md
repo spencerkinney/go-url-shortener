@@ -32,8 +32,6 @@ I want to create a production-ready service that is free for anyone to use, inco
 ```sh
 # Clone the repository
 git clone https://github.com/spencerkinney/go-url-shortener.git
-# Navigate into the project directory
-cd go-url-shortener
 # Build the project
 go build
 # Run the server

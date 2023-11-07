@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"os"
 )
 
 import (
@@ -18,8 +19,11 @@ var urlMap sync.Map
 
 func main() {
 	http.HandleFunc("/shorten", handlers.ShortenHandler)
-	http.HandleFunc("/", handlers.RedirectHandler)
+	http.HandleFunc("/", handlers.HomeOrRedirectHandler)
 
-	fmt.Println("Server listening on port 8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+    port := os.Getenv("PORT")
+    if port == "" { port = "8080" }
+
+    fmt.Printf("Server listening on port %s\n", port)
+    log.Fatal(http.ListenAndServe(":"+port, nil))
 }

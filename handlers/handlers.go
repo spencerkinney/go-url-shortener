@@ -36,8 +36,14 @@ func ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp) // Assume error handling here as per previous discussion
 }
 
-// Handler to redirect to the original URL
-func RedirectHandler(w http.ResponseWriter, r *http.Request) {
+// Handler to redirect to the original URL or render homepage
+func HomeOrRedirectHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/" {
+		utils.ServeHTMLHomepage(w, r) // Serve the homepage if the path is just "/"
+		return
+	}
+
+	// If it's not the homepage, then it's a short URL redirect request
 	shortCode := r.URL.Path[1:]
 
 	if url, ok := urlMap.Load(shortCode); ok {
