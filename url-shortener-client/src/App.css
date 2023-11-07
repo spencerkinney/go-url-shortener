@@ -11,13 +11,8 @@ body, html {
   padding: 0;
 }
 
-/* #container {
-  position: relative;
-  
-} */
-
 #bgImg {
-  background-image: url('assets/ink.jpg');
+  background-image: url('../public/ink.jpg');
 
   filter: blur(20px);
   -webkit-filter: blur(20px);
@@ -131,6 +126,27 @@ input {
 .input {
   background: transparent;
   height: 1.8rem;
+}
+
+#shortButton {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+
+#shortButton:hover {
+  border-color: #646cff;
+}
+
+#shortButton:focus,
+#shortButton:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
 }
 
 @media screen and (max-width: 1000px){

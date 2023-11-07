@@ -71,7 +71,12 @@ const App = () => {
           </div>
         </div>
 
-        <button onClick={handleClick}>Shorten Url</button>
+        <button
+          id='shortButton'
+          onClick={handleClick}
+        >
+          Shorten Url
+        </button>
       </div>
     </div>
   );
