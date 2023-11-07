@@ -1,1 +1,0 @@
-web: exec bin/go-url-shortener
