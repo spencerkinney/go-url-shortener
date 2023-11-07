@@ -1,0 +1,69 @@
+:root {
+  --purple: #9c3cf7;
+  --green: #00dc42;
+}
+
+div {
+  margin: 0.5rem;
+}
+
+#container {
+  padding: 1rem;
+}
+
+#requestContainer {
+  margin: 1rem 0;
+}
+
+#endpoint {
+  font-size: 1.5rem;
+}
+
+#requestContent {
+  padding-left: 1rem;;
+}
+
+#requestType {
+  padding: 4px;
+  border-radius: 4px;
+  letter-spacing: 2;
+  margin-left: 0.5rem;
+}
+
+.postRequest {
+  color: var(--purple);
+  border: 1.5px solid var(--purple);
+}
+
+.getRequest {
+  color: var(--green);
+  border: 1.5px solid var(--green);
+}
+
+.bold { font-weight: bold; }
+
+.preWrap {
+  white-space: pre-wrap;
+}
+
+.body {
+  padding: 0;
+  margin-left: 2rem;
+}
+
+#reqField {
+  font-weight: bold;
+  color: red; 
+}
+
+#link {
+  text-decoration: none;
+  color: #f5f5f5;
+  border: 2px solid #f5f5f5;
+  border-radius: 5px;
+  padding: 3px 5px;
+  font-weight: bold;
+  position: absolute;
+  right: 25px;
+  bottom: 20px;
+}
