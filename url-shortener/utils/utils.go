@@ -1,17 +1,11 @@
 package utils
 
 import (
+	"log"
 	"math/rand"
-	"time"
 	"net/http"
 	"os"
-	"log"
 )
-
-// Since we're using random numbers, we need to seed the random number generator.
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 // Utility function to generate a short URL.
 func GenerateShortURL() string {
