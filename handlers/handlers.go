@@ -35,8 +35,8 @@ func ShortenHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if len(req.CustomUrl) != 6 {
-			http.Error(w, "Shortened URL must be 6 characters", http.StatusBadRequest)
+		if len(req.CustomUrl) > 24 {
+			http.Error(w, "Custom URL cannot exceed 24 characters.", http.StatusBadRequest)
 			return
 		}
 
