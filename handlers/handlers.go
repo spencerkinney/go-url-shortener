@@ -25,7 +25,24 @@ func ShortenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shortCode := utils.GenerateShortURL()
+	var shortCode string
+	if req.CustomUrl == "" {
+		shortCode = utils.GenerateShortURL()
+	} else {
+		if _, ok := urlMap.Load(req.CustomUrl); ok {
+			url := fmt.Sprintf("http://%s/%s", r.Host, req.CustomUrl)
+			http.Error(w, "Shortened URL " + url + " already exists!", http.StatusConflict)
+			return
+		}
+
+		if len(req.CustomUrl) > 24 {
+			http.Error(w, "Custom URL cannot exceed 24 characters.", http.StatusBadRequest)
+			return
+		}
+
+		shortCode = req.CustomUrl
+	}
+
 	urlMap.Store(shortCode, req.URL)
 
 	resp := models.ShortenResponse{
