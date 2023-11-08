@@ -12,7 +12,7 @@ body, html {
 }
 
 #bgImg {
-  background-image: url('../public/ink.jpg');
+  /* background-image: url('../public/ink.jpg'); */
 
   filter: blur(20px);
   -webkit-filter: blur(20px);

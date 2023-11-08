@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -8,35 +10,41 @@ import (
 
 	models "go-url-shortener/models"
 	utils "go-url-shortener/utils"
+
+	"github.com/valyala/fasthttp"
 )
 
 var urlMap sync.Map
 
 // Handler to create a short URL
-func ShortenHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+func ShortenHandler(ctx *fasthttp.RequestCtx) {
+	fmt.Println("Received shorten handler request")
+	if string(ctx.Method()) != http.MethodPost {
+		ctx.Error("Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	var req models.ShortenRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
+
+	// buf := &bytes.Buffer{}
+	fmt.Println(json.Unmarshal(ctx.PostBody(), &req))
+	if err := binary.Read(bytes.NewBuffer(ctx.PostBody()), binary.BigEndian, &req); err != nil {
+		ctx.Error("Bad request", http.StatusBadRequest)
 		return
 	}
-
+	fmt.Println(req)
 	var shortCode string
 	if req.CustomUrl == "" {
 		shortCode = utils.GenerateShortURL()
 	} else {
 		if _, ok := urlMap.Load(req.CustomUrl); ok {
-			url := fmt.Sprintf("http://%s/%s", r.Host, req.CustomUrl)
-			http.Error(w, "Shortened URL "+url+" already exists!", http.StatusConflict)
+			url := fmt.Sprintf("http://%s/%s", string(ctx.Host()), req.CustomUrl)
+			ctx.Error("Shortened URL "+url+" already exists!", http.StatusConflict)
 			return
 		}
 
 		if len(req.CustomUrl) > 24 {
-			http.Error(w, "Custom URL cannot exceed 24 characters.", http.StatusBadRequest)
+			ctx.Error("Custom URL cannot exceed 24 characters.", http.StatusBadRequest)
 			return
 		}
 
@@ -46,27 +54,36 @@ func ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	urlMap.Store(shortCode, req.URL)
 
 	resp := models.ShortenResponse{
-		ShortURL: fmt.Sprintf("http://%s/%s", r.Host, shortCode),
+		ShortURL: fmt.Sprintf("http://%s/%s", string(ctx.Host()), shortCode),
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp) // Assume error handling here as per previous discussion
+	ctx.Response.Header.Set("Content-Type", "application/json")
+	// json.NewEncoder(w).Encode(resp) // Assume error handling here as per previous discussion
+	if bodyBytes, err := json.Marshal(resp); err == nil {
+		ctx.SetStatusCode(http.StatusOK)
+		ctx.SetBody(bodyBytes)
+
+	} else {
+		ctx.Error("Unknown error occurred", http.StatusInternalServerError)
+	}
+
 }
 
 // Handler to redirect to the original URL or render homepage
-func HomeOrRedirectHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path == "/" {
-		utils.ServeHTMLHomepage(w, r) // Serve the homepage if the path is just "/"
-		return
-	}
+func HomeOrRedirectHandler(ctx *fasthttp.RequestCtx) {
+	// if string(ctx.Path()) == "/" {
+	// 	utils.ServeHTMLHomepage(w, r) // Serve the homepage if the path is just "/"
+	// 	return
+	// }
 
 	// If it's not the homepage, then it's a short URL redirect request
-	shortCode := r.URL.Path[1:]
+	shortCode := string(ctx.Path())[1:]
 
 	if url, ok := urlMap.Load(shortCode); ok {
-		http.Redirect(w, r, url.(string), http.StatusFound)
+		ctx.Redirect(url.(string), http.StatusFound)
 		return
 	}
 
-	http.NotFound(w, r)
+	ctx.NotFound()
+	return
 }
