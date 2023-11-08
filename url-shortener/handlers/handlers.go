@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"bytes"
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -18,7 +16,8 @@ var urlMap sync.Map
 
 // Handler to create a short URL
 func ShortenHandler(ctx *fasthttp.RequestCtx) {
-	fmt.Println("Received shorten handler request")
+	// fmt.Println("Received shorten handler request")
+	// fmt.Println(string(ctx.Response.Header.Peek("Access-Control-Allow-Origin")))
 	if string(ctx.Method()) != http.MethodPost {
 		ctx.Error("Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -26,13 +25,10 @@ func ShortenHandler(ctx *fasthttp.RequestCtx) {
 
 	var req models.ShortenRequest
 
-	// buf := &bytes.Buffer{}
-	fmt.Println(json.Unmarshal(ctx.PostBody(), &req))
-	if err := binary.Read(bytes.NewBuffer(ctx.PostBody()), binary.BigEndian, &req); err != nil {
+	if _, err := utils.ReadShortenRequestBody(ctx.PostBody(), req); err != nil {
 		ctx.Error("Bad request", http.StatusBadRequest)
-		return
 	}
-	fmt.Println(req)
+
 	var shortCode string
 	if req.CustomUrl == "" {
 		shortCode = utils.GenerateShortURL()
@@ -66,15 +62,14 @@ func ShortenHandler(ctx *fasthttp.RequestCtx) {
 	} else {
 		ctx.Error("Unknown error occurred", http.StatusInternalServerError)
 	}
-
 }
 
 // Handler to redirect to the original URL or render homepage
 func HomeOrRedirectHandler(ctx *fasthttp.RequestCtx) {
-	// if string(ctx.Path()) == "/" {
-	// 	utils.ServeHTMLHomepage(w, r) // Serve the homepage if the path is just "/"
-	// 	return
-	// }
+	if string(ctx.Path()) == "/" {
+		utils.ServeHTMLHomepage(ctx) // Serve the homepage if the path is just "/"
+		return
+	}
 
 	// If it's not the homepage, then it's a short URL redirect request
 	shortCode := string(ctx.Path())[1:]
@@ -85,5 +80,4 @@ func HomeOrRedirectHandler(ctx *fasthttp.RequestCtx) {
 	}
 
 	ctx.NotFound()
-	return
 }

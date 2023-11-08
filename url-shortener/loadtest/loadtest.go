@@ -1,4 +1,4 @@
-package loadtest
+package main
 
 import (
 	"fmt"
@@ -13,8 +13,8 @@ const (
 	endpoint       = "http://localhost:8080/shorten"
 	contentType    = "application/json"
 	payload        = `{"url": "https://www.example.com"}`
-	requestsNumber = 10000 // number of requests to send
-	concurrency    = 100  // number of concurrent requests
+	requestsNumber = 7000 // number of requests to send
+	concurrency    = 14   // number of concurrent requests
 )
 
 func main() {

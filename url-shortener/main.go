@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -25,13 +24,7 @@ import (
 
 func main() {
 	requestHandler := func(ctx *fasthttp.RequestCtx) {
-		fmt.Println("Received inbound request")
-		// ctx.Request.Header.Set("Access-Control-Allow-Origin", "*")
-		// ctx.Request.Header.Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		// ctx.Request.Header.Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-		// route.POST("/shorten", handlers.ShortenHandler)
-		// route.GET("/", CORS(handlers.HomeOrRedirectHandler))
-		// route.GET("/test", CORS(handlers.TestHandler))
+		// fmt.Println("Received inbound request")
 		var (
 			allowOrigin      = "*"
 			allowCredentials = "true"
@@ -68,19 +61,21 @@ func main() {
 	// }
 }
 
-func CORS(next fasthttp.RequestHandler) fasthttp.RequestHandler {
-	var (
-		allowOrigin      = "*"
-		allowCredentials = "true"
-		allowHeaders     = "Authorization accept Content-Type"
-		allowedMethods   = "GET, POST"
-	)
-	return func(ctx *fasthttp.RequestCtx) {
-		ctx.Response.Header.Set("Access-Control-Allow-Origin", allowOrigin)
-		ctx.Response.Header.Set("Access-Control-Allow-Credentials", allowCredentials)
-		ctx.Response.Header.Set("Access-Control-Allow-Headers", allowHeaders)
-		ctx.Response.Header.Set("Access-Control-Allow-Methods", allowedMethods)
+// func CORS(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+// 	// fmt.Println("Setting CORS for context")
+// 	var (
+// 		allowOrigin      = "*"
+// 		allowCredentials = "true"
+// 		allowHeaders     = "Access-Control-Allow-Headers, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"
+// 		allowedMethods   = "GET, POST"
+// 	)
+// 	return func(ctx *fasthttp.RequestCtx) {
+// 		// fmt.Println("Setting response headers for context")
+// 		ctx.Response.Header.Set("Access-Control-Allow-Origin", allowOrigin)
+// 		ctx.Response.Header.Set("Access-Control-Allow-Credentials", allowCredentials)
+// 		ctx.Response.Header.Set("Access-Control-Allow-Headers", allowHeaders)
+// 		ctx.Response.Header.Set("Access-Control-Allow-Methods", allowedMethods)
 
-		next(ctx)
-	}
-}
+// 		next(ctx)
+// 	}
+// }
