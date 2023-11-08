@@ -25,7 +25,9 @@ func ShortenHandler(ctx *fasthttp.RequestCtx) {
 
 	var req models.ShortenRequest
 
-	if _, err := utils.ReadShortenRequestBody(ctx.PostBody(), req); err != nil {
+	req, err := utils.ReadShortenRequestBody(ctx.PostBody(), req)
+
+	if err != nil {
 		ctx.Error("Bad request", http.StatusBadRequest)
 	}
 
@@ -47,6 +49,8 @@ func ShortenHandler(ctx *fasthttp.RequestCtx) {
 		shortCode = req.CustomUrl
 	}
 
+	fmt.Println(string(req.URL))
+	
 	urlMap.Store(shortCode, req.URL)
 
 	resp := models.ShortenResponse{
@@ -76,6 +80,7 @@ func HomeOrRedirectHandler(ctx *fasthttp.RequestCtx) {
 
 	if url, ok := urlMap.Load(shortCode); ok {
 		ctx.Redirect(url.(string), http.StatusFound)
+		ctx.Redirect("https://www.example.com", http.StatusFound)
 		return
 	}
 

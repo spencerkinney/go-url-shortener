@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"go-url-shortener/models"
 	"log"
 	"math/rand"
@@ -51,7 +50,6 @@ func ServeHTMLHomepage(ctx *fasthttp.RequestCtx) {
 func ReadShortenRequestBody(postBody []byte, reqObj models.ShortenRequest) (models.ShortenRequest, error) {
 	buf := &bytes.Buffer{}
 	buf.Write(postBody)
-	fmt.Println(buf)
 	_, buffWriteErr := buf.Write(postBody)
 	buffReadErr := binary.Read(buf, binary.BigEndian, &reqObj)
 	if buffWriteErr != nil || buffReadErr != nil {

@@ -13,8 +13,8 @@ const (
 	endpoint       = "http://localhost:8080/shorten"
 	contentType    = "application/json"
 	payload        = `{"url": "https://www.example.com"}`
-	requestsNumber = 7000 // number of requests to send
-	concurrency    = 14   // number of concurrent requests
+	requestsNumber = 10000 // number of requests to send
+	concurrency    = 10   // number of concurrent requests
 )
 
 func main() {

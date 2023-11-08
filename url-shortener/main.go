@@ -36,13 +36,12 @@ func main() {
 		ctx.Response.Header.Set("Access-Control-Allow-Headers", allowHeaders)
 		ctx.Response.Header.Set("Access-Control-Allow-Methods", allowedMethods)
 
-		switch string(ctx.Path()) {
+		path := string(ctx.Path())
+		switch path {
 		case "/shorten":
 			handlers.ShortenHandler(ctx)
-		case "/":
-			handlers.HomeOrRedirectHandler(ctx)
 		default:
-			ctx.Error("Unsupported path", fasthttp.StatusNotFound)
+			handlers.HomeOrRedirectHandler(ctx)
 		}
 
 	}
