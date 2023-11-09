@@ -15,3 +15,4 @@
 - The script sends many HTTP POST requests to the `/shorten` endpoint.
 - Adjust `requestsNumber` and `concurrency` in the script as needed.
 - Results show total and average time for requests.
+- you can pip install locust and python and run `locust -f locustfile.py` to do a load test, might be slower than using Jmeter though

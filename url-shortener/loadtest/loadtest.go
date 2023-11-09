@@ -1,80 +1,97 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"sort"
-	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
 const (
-	endpoint       = "http://localhost:8080/shorten"
+	endpoint       = "http://127.0.0.1:8080/shorten"
 	contentType    = "application/json"
 	payload        = `{"url": "https://www.example.com"}`
-	requestsNumber = 10000 // number of requests to send
-	concurrency    = 10   // number of concurrent requests
+	concurrency    = 10   // Number of concurrent goroutines
+	duration       = 15 * time.Second // Test duration
 )
 
 func main() {
 	var wg sync.WaitGroup
-	wg.Add(concurrency)
-
-	results := make(chan time.Duration, requestsNumber)
 	startTime := time.Now()
+	stopTime := startTime.Add(duration)
+	var totalRequests int64
+	var totalErrors int64
+
+	latencies := make(chan time.Duration, 10000) // Buffer based on expected RPS
+
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+		Transport: &http.Transport{
+			MaxConnsPerHost: concurrency,
+		},
+	}
 
 	for i := 0; i < concurrency; i++ {
+		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for j := 0; j < requestsNumber/concurrency; j++ {
+			for time.Now().Before(stopTime) {
 				start := time.Now()
-				_, err := http.Post(endpoint, contentType, strings.NewReader(payload))
+				resp, err := client.Post(endpoint, contentType, bytes.NewReader([]byte(payload)))
+				latency := time.Since(start)
+				
 				if err != nil {
 					fmt.Printf("HTTP request failed: %s\n", err)
+					atomic.AddInt64(&totalErrors, 1)
 					continue
 				}
-				results <- time.Since(start)
+
+				if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+					fmt.Printf("HTTP request returned non-2xx status: %d\n", resp.StatusCode)
+					atomic.AddInt64(&totalErrors, 1)
+				} else {
+					latencies <- latency
+					atomic.AddInt64(&totalRequests, 1)
+				}
+
+				resp.Body.Close()
 			}
 		}()
 	}
 
 	wg.Wait()
-	close(results)
-	totalDuration := time.Since(startTime)
+	close(latencies)
 
-	var totalRequestTime time.Duration
-	var durations []time.Duration
-	for result := range results {
-		totalRequestTime += result
-		durations = append(durations, result)
+	// Collect and analyze the results
+	var totalLatency time.Duration
+	var maxLatency time.Duration
+	durations := make([]time.Duration, 0, totalRequests)
+
+	for latency := range latencies {
+		totalLatency += latency
+		if latency > maxLatency {
+			maxLatency = latency
+		}
+		durations = append(durations, latency)
 	}
 
-	avgRequestTime := totalRequestTime / time.Duration(requestsNumber)
-
-	// Sort the durations to find the median
+	// Sort latencies to calculate median
 	sort.Slice(durations, func(i, j int) bool { return durations[i] < durations[j] })
-	medianRequestTime := durations[requestsNumber/2]
 
-	fmt.Printf("Total time for %d requests with %d concurrency: %s\n", requestsNumber, concurrency, totalDuration)
-	fmt.Printf("Average request time: %s\n", avgRequestTime)
-	fmt.Printf("Median request time: %s\n", medianRequestTime)
-	fmt.Printf("Requests per second: %f\n", float64(requestsNumber)/totalDuration.Seconds())
-
-	// Print the min and max request times
-	minRequestTime := durations[0]
-	maxRequestTime := durations[len(durations)-1]
-
-	// Check if the minRequestTime is zero
-	if minRequestTime == 0 {
-		fmt.Println("Min request time: < 1ns")
-	} else if minRequestTime < time.Microsecond {
-		// Convert nanoseconds to float and format the output
-		fmt.Printf("Min request time: %.2fns\n", float64(minRequestTime))
-	} else {
-		// Use the default String() method for durations longer than 1 microsecond
-		fmt.Printf("Min request time: %s\n", minRequestTime)
+	var median time.Duration
+	if len(durations) > 0 {
+		median = durations[len(durations)/2]
 	}
+	mean := time.Duration(atomic.LoadInt64(&totalRequests) / totalRequests)
 
-	fmt.Printf("Max request time: %s\n", maxRequestTime)
+	fmt.Printf("Total time taken for test: %s\n", duration)
+	fmt.Printf("Total number of requests: %d\n", totalRequests)
+	fmt.Printf("Total number of errors: %d\n", totalErrors)
+	fmt.Printf("Requests per second: %.2f\n", float64(totalRequests)/duration.Seconds())
+	fmt.Printf("Mean request time: %s\n", mean)
+	fmt.Printf("Median request time: %s\n", median)
+	fmt.Printf("Max request time: %s\n", maxLatency)
 }
