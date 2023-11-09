@@ -16,19 +16,15 @@ var urlMap sync.Map
 
 // Handler to create a short URL
 func ShortenHandler(ctx *fasthttp.RequestCtx) {
-	// fmt.Println("Received shorten handler request")
-	// fmt.Println(string(ctx.Response.Header.Peek("Access-Control-Allow-Origin")))
-	if string(ctx.Method()) != http.MethodPost {
-		ctx.Error("Method not allowed", http.StatusMethodNotAllowed)
+	if !ctx.IsPost() {
+		ctx.Error("Method not allowed", fasthttp.StatusMethodNotAllowed)
 		return
 	}
 
 	var req models.ShortenRequest
-
-	req, err := utils.ReadShortenRequestBody(ctx.PostBody(), req)
-
-	if err != nil {
-		ctx.Error("Bad request", http.StatusBadRequest)
+	if err := json.Unmarshal(ctx.PostBody(), &req); err != nil {
+		ctx.Error("Bad request", fasthttp.StatusBadRequest)
+		return
 	}
 
 	var shortCode string
@@ -36,35 +32,35 @@ func ShortenHandler(ctx *fasthttp.RequestCtx) {
 		shortCode = utils.GenerateShortURL()
 	} else {
 		if _, ok := urlMap.Load(req.CustomUrl); ok {
-			url := fmt.Sprintf("http://%s/%s", string(ctx.Host()), req.CustomUrl)
-			ctx.Error("Shortened URL "+url+" already exists!", http.StatusConflict)
+			url := fmt.Sprintf("http://%s/%s", ctx.Host(), req.CustomUrl)
+			ctx.Error("Shortened URL "+url+" already exists!", fasthttp.StatusConflict)
 			return
 		}
 
 		if len(req.CustomUrl) > 24 {
-			ctx.Error("Custom URL cannot exceed 24 characters.", http.StatusBadRequest)
+			ctx.Error("Custom URL cannot exceed 24 characters.", fasthttp.StatusBadRequest)
 			return
 		}
 
 		shortCode = req.CustomUrl
 	}
 
-	fmt.Println(string(req.URL))
-	
+	// Assuming urlMap is a thread-safe map
 	urlMap.Store(shortCode, req.URL)
 
+	// for debugging purposes, it will significally slow down RPS
+	//fmt.Println("Short URL created:", shortCode)
+
 	resp := models.ShortenResponse{
-		ShortURL: fmt.Sprintf("http://%s/%s", string(ctx.Host()), shortCode),
+		ShortURL: fmt.Sprintf("http://%s/%s", ctx.Host(), shortCode),
 	}
 
 	ctx.Response.Header.Set("Content-Type", "application/json")
-	// json.NewEncoder(w).Encode(resp) // Assume error handling here as per previous discussion
 	if bodyBytes, err := json.Marshal(resp); err == nil {
-		ctx.SetStatusCode(http.StatusOK)
+		ctx.SetStatusCode(fasthttp.StatusOK)
 		ctx.SetBody(bodyBytes)
-
 	} else {
-		ctx.Error("Unknown error occurred", http.StatusInternalServerError)
+		ctx.Error("Unknown error occurred", fasthttp.StatusInternalServerError)
 	}
 }
 
@@ -78,8 +74,8 @@ func HomeOrRedirectHandler(ctx *fasthttp.RequestCtx) {
 	// If it's not the homepage, then it's a short URL redirect request
 	shortCode := string(ctx.Path())[1:]
 
-	if url, ok := urlMap.Load(shortCode); ok {
-		ctx.Redirect(url.(string), http.StatusFound)
+	if _, ok := urlMap.Load(shortCode); ok {
+		//ctx.Redirect(url.(string), http.StatusFound)
 		ctx.Redirect("https://www.example.com", http.StatusFound)
 		return
 	}
